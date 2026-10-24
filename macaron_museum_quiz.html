@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>广州艺术博物院 · 看展人格测试</title>
+<style>
+  :root {
+    --bg: #FAF6EF;
+    --card: #FFFFFF;
+    --ink: #3E3A34;
+    --ink-soft: #8A8175;
+    --line: #EAE2D5;
+    --pink: #F4B8C4;
+    --pink-deep: #E49AAC;
+    --mint: #BCDCC0;
+    --butter: #F5E6A8;
+    --lavender: #D3C6F0;
+    --sky: #AEC9D6;
+    --radius: 20px;
+    --safe-b: env(safe-area-inset-bottom, 0px);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+  .serif { font-family: "Noto Serif SC", "Songti SC", "STSong", serif; }
+  button { touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+  button:focus-visible { outline: 2px solid var(--pink-deep); outline-offset: 3px; }
+  img { background: #F1E9DC; }
+
+  /* ---------- 桌面端氛围装饰 ---------- */
+  body::before, body::after {
+    content: "";
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0;
+    z-index: -1;
+    pointer-events: none;
+    transition: opacity .6s ease;
+  }
+  @media (min-width: 900px) {
+    body::before { width: 440px; height: 440px; background: #F6D9E0; top: -130px; left: -110px; opacity: .55; }
+    body::after  { width: 480px; height: 480px; background: #DCEBD8; bottom: -150px; right: -130px; opacity: .55; }
+  }
+
+  .stage {
+    width: 100%;
+    max-width: 640px;
+    padding: 48px 22px calc(56px + var(--safe-b));
+    display: flex;
+    flex-direction: column;
+  }
+  @media (min-width: 768px) {
+    .stage { padding: 72px 32px 88px; }
+  }
+
+  /* ---------- 顶部 ---------- */
+  header { text-align: center; margin-bottom: 32px; }
+  .kicker {
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .brand { font-size: 15px; letter-spacing: 2px; }
+  .brand .dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--pink);
+    margin: 0 10px 2px;
+  }
+  .brand .dot:nth-child(3) { background: var(--mint); }
+  .brand .dot:nth-child(5) { background: var(--lavender); }
+
+  /* ---------- 进度 ---------- */
+  .progress-wrap { margin-bottom: 26px; }
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 12px;
+    color: var(--ink-soft);
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+  .kbd-hint { display: none; letter-spacing: 1px; }
+  @media (hover: hover) and (pointer: fine) {
+    .kbd-hint { display: inline; }
+  }
+  .progress-track {
+    height: 6px;
+    background: #EFE7D9;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--pink), var(--lavender));
+    transition: width .45s cubic-bezier(.22,1,.36,1);
+  }
+
+  /* ---------- 屏幕切换 ---------- */
+  .screen { display: none; }
+  .screen.active { display: block; animation: rise .5s cubic-bezier(.22,1,.36,1) both; }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* 题目横向滑动 */
+  #screen-quiz.q-exit .q-anim { animation: exitLeft .22s ease both; }
+  #screen-quiz.q-enter .q-anim { animation: enterRight .34s cubic-bezier(.22,1,.36,1) both; }
+  #screen-quiz.q-exit-back .q-anim { animation: exitRight .22s ease both; }
+  #screen-quiz.q-enter-back .q-anim { animation: enterLeft .34s cubic-bezier(.22,1,.36,1) both; }
+  @keyframes exitLeft  { to { opacity: 0; transform: translateX(-26px); } }
+  @keyframes enterRight{ from { opacity: 0; transform: translateX(26px); } }
+  @keyframes exitRight { to { opacity: 0; transform: translateX(26px); } }
+  @keyframes enterLeft { from { opacity: 0; transform: translateX(-26px); } }
+
+  /* ---------- 开始页 ---------- */
+  .hero-img {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    display: block;
+    margin-bottom: 28px;
+  }
+  h1.title {
+    font-size: clamp(26px, 5.2vw, 34px);
+    line-height: 1.35;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 14px;
+  }
+  .subtitle {
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 14px;
+    line-height: 1.9;
+    margin-bottom: 34px;
+  }
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 0 auto 34px;
+    width: 200px;
+  }
+  .divider::before, .divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+  .divider span { width: 8px; height: 8px; border-radius: 50%; background: var(--butter); }
+
+  .venue { margin-bottom: 34px; }
+  .venue-img {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    display: block;
+  }
+  .venue figcaption {
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--ink-soft);
+    margin-top: 10px;
+  }
+  .blindbox-hint {
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--ink-soft);
+    margin-top: 18px;
+  }
+
+  .btn-primary {
+    display: block;
+    width: 100%;
+    padding: 18px;
+    min-height: 56px;
+    border: none;
+    border-radius: 999px;
+    background: var(--ink);
+    color: #FBF7F0;
+    font-size: 16px;
+    letter-spacing: 6px;
+    cursor: pointer;
+    transition: transform .15s ease, background .2s ease, box-shadow .2s ease;
+    font-family: inherit;
+  }
+  @media (hover: hover) {
+    .btn-primary:hover { background: #575046; transform: translateY(-2px); box-shadow: 0 10px 24px rgba(62,58,52,.18); }
+  }
+  .btn-primary:active { transform: scale(.98); }
+
+  /* ---------- 题目页 ---------- */
+  .q-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    min-height: 30px;
+  }
+  .btn-back {
+    border: none;
+    background: transparent;
+    color: var(--ink-soft);
+    font-size: 13px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    padding: 6px 10px 6px 0;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: color .2s ease;
+    visibility: hidden;
+  }
+  .btn-back.show { visibility: visible; }
+  @media (hover: hover) {
+    .btn-back:hover { color: var(--ink); }
+  }
+  .q-no {
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: var(--pink-deep);
+    margin-bottom: 12px;
+  }
+  .q-text {
+    font-size: clamp(19px, 2.6vw, 24px);
+    line-height: 1.55;
+    font-weight: 600;
+    margin-bottom: 30px;
+    min-height: 76px;
+  }
+  .options { display: flex; flex-direction: column; gap: 14px; }
+  .opt {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    min-height: 58px;
+    text-align: left;
+    padding: 16px 20px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--ink);
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform .15s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
+  }
+  @media (hover: hover) {
+    .opt:hover {
+      transform: translateY(-2px);
+      border-color: var(--pink);
+      box-shadow: 0 8px 24px rgba(228,154,172,.18);
+    }
+  }
+  .opt:active { transform: scale(.985); }
+  .opt .badge {
+    flex: none;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: #6B6257;
+    background: #F4EEE2;
+  }
+  .opt:nth-child(1) .badge { background: #FBE3E8; }
+  .opt:nth-child(2) .badge { background: #E2F1E4; }
+  .opt:nth-child(3) .badge { background: #FBF3D3; }
+  .opt:nth-child(4) .badge { background: #E4EBF0; }
+  .opt.picked {
+    border-color: var(--pink-deep);
+    background: #FDF3F5;
+    animation: pop .28s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+
+  /* ---------- 结果页 ---------- */
+  .result-card {
+    position: relative;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .result-visual { position: relative; }
+  .result-visual img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    display: block;
+  }
+  .result-tag {
+    position: absolute;
+    left: 20px; bottom: -16px;
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-size: 13px;
+    letter-spacing: 2px;
+    color: #4A443C;
+    border: 1px solid rgba(255,255,255,.7);
+  }
+  .result-body { padding: 40px 28px 32px; }
+  @media (max-width: 480px) { .result-body { padding: 36px 20px 26px; } }
+  .result-title { font-size: clamp(24px, 4.4vw, 28px); font-weight: 600; margin-bottom: 6px; }
+  .result-en {
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .result-desc {
+    font-size: 14.5px;
+    line-height: 2;
+    color: #5A534A;
+    margin-bottom: 24px;
+  }
+  .tip-box {
+    background: #FAF5EC;
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-bottom: 26px;
+  }
+  .tip-box .tip-label {
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+  }
+  .tip-box .tip-text { font-size: 14px; line-height: 1.9; }
+
+  .dist { margin-bottom: 28px; }
+  .dist-label {
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+  .dist-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+    font-size: 13px;
+  }
+  .dist-name { width: 96px; flex: none; color: #6B6257; }
+  .dist-track { flex: 1; height: 8px; background: #F1EADD; border-radius: 999px; overflow: hidden; }
+  .dist-fill { height: 100%; border-radius: 999px; width: 0; transition: width .8s cubic-bezier(.22,1,.36,1); }
+
+  .share-qr { text-align: center; margin-top: 26px; }
+  .share-qr img {
+    width: 112px;
+    height: 112px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 6px;
+    background: var(--paper);
+  }
+  .share-qr p {
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    color: var(--ink-soft);
+    margin-top: 10px;
+  }
+  .dist-count { width: 24px; text-align: right; color: var(--ink-soft); }
+
+  .btn-ghost {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    min-height: 52px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink);
+    font-size: 14px;
+    letter-spacing: 4px;
+    cursor: pointer;
+    transition: border-color .2s ease, background .2s ease;
+    font-family: inherit;
+    margin-top: 12px;
+  }
+  @media (hover: hover) {
+    .btn-ghost:hover { border-color: var(--pink-deep); background: #FDF3F5; }
+  }
+
+  /* 结果页彩点 */
+  .confetti-dot {
+    position: absolute;
+    top: -12px;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: fall linear forwards;
+  }
+  @keyframes fall {
+    to { transform: translateY(460px) rotate(240deg); opacity: 0; }
+  }
+
+  footer {
+    margin-top: 36px;
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #B4AA99;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    .confetti-dot { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <header>
+    <div class="kicker">Guangzhou Museum of Art</div>
+    <div class="brand serif">广州艺术博物院<span class="dot"></span>看展人格测试<span class="dot"></span></div>
+  </header>
+
+  <!-- 开始页 -->
+  <section id="screen-start" class="screen active">
+    <img class="hero-img" alt="广州艺术博物院插画"
+      src="assets/hero_museum_1.jpg">
+    <h1 class="title serif">你是哪一种<br>看展人？</h1>
+    <p class="subtitle">
+      周末午后，你走进珠江边那朵「水中盛放的英雄花」。<br>
+      10 个情境选择，测测你的看展人格。
+    </p>
+    <figure class="venue">
+      <img class="venue-img" src="assets/venue_photo.jpg" alt="广州艺术博物院实景">
+      <figcaption>场馆实景 · 珠江边的「水中盛放的英雄花」</figcaption>
+    </figure>
+    <div class="divider"><span></span></div>
+    <button class="btn-primary" id="btn-start">开始测试</button>
+    <p class="blindbox-hint">✦ 还有一款盲盒隐藏人格，只有最极端的答题方式才能唤醒</p>
+  </section>
+
+  <!-- 题目页 -->
+  <section id="screen-quiz" class="screen">
+    <div class="progress-wrap">
+      <div class="progress-meta">
+        <span id="progress-step">01 / 10</span>
+        <span class="kbd-hint">键盘 1–4 或 A–D 作答 · Backspace 返回</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+    <div class="q-anim">
+      <div class="q-nav">
+        <button class="btn-back" id="btn-back">‹ 上一题</button>
+      </div>
+      <div class="q-no" id="q-no">QUESTION 01</div>
+      <div class="q-text serif" id="q-text"></div>
+      <div class="options" id="q-options"></div>
+    </div>
+  </section>
+
+  <!-- 结果页 -->
+  <section id="screen-result" class="screen">
+    <div class="result-card" id="result-card">
+      <div class="result-visual">
+        <img id="result-img" alt="人格形象">
+        <span class="result-tag" id="result-tag"></span>
+      </div>
+      <div class="result-body">
+        <div class="result-title serif" id="result-title"></div>
+        <div class="result-en" id="result-en"></div>
+        <p class="result-desc" id="result-desc"></p>
+        <div class="tip-box">
+          <div class="tip-label">艺博院逛展小贴士</div>
+          <div class="tip-text" id="result-tip"></div>
+        </div>
+        <div class="dist">
+          <div class="dist-label">你的人格成分</div>
+          <div id="dist-list"></div>
+        </div>
+        <button class="btn-primary" id="btn-share" style="letter-spacing:2px;">复制结果，分享给同去看展的 TA</button>
+        <button class="btn-ghost" id="btn-restart">再测一次</button>
+        <div class="share-qr">
+          <img src="assets/qr_demo.png" alt="测试入口二维码">
+          <p>扫码或复制链接，邀朋友一起测</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>GZMA PERSONALITY QUIZ · MACARON EDITION</footer>
+</div>
+
+<script>
+/* ---------- 人格定义 ---------- */
+const PERSONAS = {
+  snap: {
+    name: "氛围感打卡家",
+    en: "The Aesthetic Snapper",
+    color: "#F4B8C4",
+    img: "assets/persona_snap.jpg",
+    desc: "对你而言，展览是一席流动的盛宴，而你是这场盛宴的记录者。木棉花穹顶的光影、临江步道的微风、画作前恰好的侧影——你总能发现美术馆里最上镜的角落。你的相册，就是一本私人观展图录。",
+    tip: "中庭的木棉花穹顶和馆外临江步道是绝佳机位，傍晚珠江日落时分光线最温柔。拍完别忘了也把作品本身看进眼里。"
+  },
+  slow: {
+    name: "沉浸慢读派",
+    en: "The Mindful Wanderer",
+    color: "#BCDCC0",
+    img: "assets/persona_slow.jpg",
+    desc: "一块展签你可以读十分钟，一件作品值得你驻足良久。你相信艺术不是用来「看完」的，而是用来「遇见」的。在人潮涌动的展厅里，你守着属于自己的慢节奏，就像老广饮早茶——一盅两件，慢慢叹。",
+    tip: "建议租一台语音导览，预留半天以上时间。馆内休息区很多，逛累了坐下来发发呆，也是一种看展方式。"
+  },
+  flash: {
+    name: "闪电扫馆王",
+    en: "The Efficient Sprinter",
+    color: "#F5E6A8",
+    img: "assets/persona_flash.jpg",
+    desc: "四十分钟刷完全场，动线清晰、目标明确，镇馆之宝一个不落。效率就是你的观展美学——与其在每件作品前犹豫，不如把时间留给真正想看的。你的观展清单，永远完成得又快又漂亮。",
+    tip: "出发前在官方公众号看好楼层展厅分布，进门先奔重点展厅，逆着人流走体验感翻倍。刷完展去附近喝个下午茶，完美闭环。"
+  },
+  nerd: {
+    name: "考据研究员",
+    en: "The Art Researcher",
+    color: "#AEC9D6",
+    img: "assets/persona_nerd.jpg",
+    desc: "看展之前你早已做完功课：艺术家的生平、创作脉络、岭南画派的来龙去脉都了然于心。展厅是你的田野现场，每件作品都是待解的谜题。别人在看画，你在读一部立体的艺术史。",
+    tip: "文创商店有展览图录和木棉花主题周边，官方学术讲座别错过——提问环节是你的主场。"
+  }
+};
+
+/* ---------- 隐藏人格（盲盒款） ---------- */
+const HIDDEN = {
+  name: "灵感造梦家",
+  en: "The Hidden Dreamer",
+  color: "#D3C6F0",
+  img: "assets/persona_dream.jpg",
+  desc: "你不是靠运气，而是用最决绝的方式完成了整场测试——十次选择，同一个方向，不为任何人格所定义。这样极致的灵魂，看展如做梦：光影、作品与人群在你眼中自动织成一场温柔的梦境。",
+  tip: "造梦家没有攻略——带上好奇心随便走进一个展厅，梦会自己发生。"
+};
+let lastHidden = false;
+
+/* ---------- 题库 ---------- */
+const QUESTIONS = [
+  {
+    text: "听说艺博院新馆又有大展，你的第一反应是？",
+    options: [
+      { t: "先刷一圈社交平台，收藏最佳拍照机位", p: "snap" },
+      { t: "找策展人访谈和艺术家资料认真预习", p: "nerd" },
+      { t: "记下重点展品位置，规划最高效动线", p: "flash" },
+      { t: "预约一个人少的工作日，留足整个下午", p: "slow" }
+    ]
+  },
+  {
+    text: "走进如木棉花绽放般的中庭，你的第一件事是？",
+    options: [
+      { t: "仰拍穹顶，先收获今日第一张大片", p: "snap" },
+      { t: "到服务台领导览册，从策展前言读起", p: "nerd" },
+      { t: "直奔电梯，先去最核心的展厅", p: "flash" },
+      { t: "在中庭站一会儿，感受光影穿过穹顶", p: "slow" }
+    ]
+  },
+  {
+    text: "面对一幅三米高的岭南山水巨作，你会？",
+    options: [
+      { t: "走到画前，拍张氛围感背影照", p: "snap" },
+      { t: "凑近细看皴法、墨色与纸本质地", p: "slow" },
+      { t: "看一眼标题和作者，走向下一件", p: "flash" },
+      { t: "在脑中调出岭南画派的传承脉络", p: "nerd" }
+    ]
+  },
+  {
+    text: "作品旁的展签（说明牌），你通常怎么读？",
+    options: [
+      { t: "拍下来存进手机，回家再慢慢研究", p: "nerd" },
+      { t: "逐字读完，连英文对照也不放过", p: "slow" },
+      { t: "扫一眼作者和年代就够了", p: "flash" },
+      { t: "先凭直觉感受作品，文字随缘", p: "snap" }
+    ]
+  },
+  {
+    text: "遇到一件完全看不懂的当代装置，你会？",
+    options: [
+      { t: "拍段短视频，配文「艺术真奇妙」", p: "snap" },
+      { t: "站在原地多待一会儿，等感觉浮现", p: "slow" },
+      { t: "果断转身，把时间留给下一件", p: "flash" },
+      { t: "现场查资料，弄清它的创作理念", p: "nerd" }
+    ]
+  },
+  {
+    text: "同行的朋友在中庭走散了，你会？",
+    options: [
+      { t: "正好，趁没人先独自拍几张", p: "snap" },
+      { t: "不着急，边逛边等一场偶遇", p: "slow" },
+      { t: "发消息约好出口集合时间，各逛各的", p: "flash" },
+      { t: "对照导览图，推算 TA 现在逛到哪了", p: "nerd" }
+    ]
+  },
+  {
+    text: "美术馆提供的语音导览，你的态度是？",
+    options: [
+      { t: "全程佩戴，一件一件慢慢听过去", p: "slow" },
+      { t: "只挑重点展品听，其余略过", p: "flash" },
+      { t: "听完还会搜更多资料延伸阅读", p: "nerd" },
+      { t: "不戴，耳机影响我拍照的状态", p: "snap" }
+    ]
+  },
+  {
+    text: "逛到一半有点累了，你会怎么休整？",
+    options: [
+      { t: "去馆外珠江边步道吹风，顺便拍组风景", p: "snap" },
+      { t: "找张长椅坐下，回味刚才的作品", p: "slow" },
+      { t: "喝口水继续，还有半个馆没刷完", p: "flash" },
+      { t: "去文创商店翻翻展览图录提提神", p: "nerd" }
+    ]
+  },
+  {
+    text: "离闭馆只剩 15 分钟，你会用来？",
+    options: [
+      { t: "冲去中庭，抓紧补拍几张穹顶光影", p: "snap" },
+      { t: "回到最喜欢的那件作品前再待一会儿", p: "slow" },
+      { t: "快速扫楼，把漏掉的展厅补一遍", p: "flash" },
+      { t: "翻导览册核对，确认没有错过重点", p: "nerd" }
+    ]
+  },
+  {
+    text: "走出美术馆后，你一定会做的一件事？",
+    options: [
+      { t: "精修九张图，发条今日看展动态", p: "snap" },
+      { t: "在留言簿上写下今天的观展感受", p: "slow" },
+      { t: "约朋友下周末先饮早茶再刷下一个展", p: "flash" },
+      { t: "买一本展览图录，回家继续细读", p: "nerd" }
+    ]
+  }
+];
+
+/* ---------- 状态 ---------- */
+const TOTAL = QUESTIONS.length;
+let current = 0;
+let answers = new Array(TOTAL).fill(null);
+let locked = false;
+
+const $ = id => document.getElementById(id);
+const screens = { start: $("screen-start"), quiz: $("screen-quiz"), result: $("screen-result") };
+const quizEl = screens.quiz;
+
+function show(name) {
+  Object.values(screens).forEach(s => s.classList.remove("active"));
+  screens[name].classList.add("active");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function pad(n) { return String(n).padStart(2, "0"); }
+function vibrate() { if (navigator.vibrate) navigator.vibrate(10); }
+
+/* ---------- 题目渲染 ---------- */
+function renderQuestion() {
+  locked = false;
+  const q = QUESTIONS[current];
+  $("progress-step").textContent = `${pad(current + 1)} / ${TOTAL}`;
+  $("progress-fill").style.width = `${(current / TOTAL) * 100}%`;
+  $("q-no").textContent = `QUESTION ${pad(current + 1)}`;
+  $("q-text").textContent = q.text;
+  $("btn-back").classList.toggle("show", current > 0);
+
+  const box = $("q-options");
+  box.innerHTML = "";
+  const letters = ["A", "B", "C", "D"];
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement("button");
+    btn.className = "opt" + (answers[current] === opt.p ? " picked" : "");
+    btn.innerHTML = `<span class="badge">${letters[i]}</span><span>${opt.t}</span>`;
+    btn.addEventListener("click", () => pick(btn, opt.p));
+    box.appendChild(btn);
+  });
+}
+
+/* 带方向感的题目切换 */
+function slideTo(fn, back) {
+  quizEl.classList.add(back ? "q-exit-back" : "q-exit");
+  setTimeout(() => {
+    quizEl.classList.remove("q-exit", "q-exit-back");
+    fn();
+    quizEl.classList.add(back ? "q-enter-back" : "q-enter");
+    setTimeout(() => quizEl.classList.remove("q-enter", "q-enter-back"), 360);
+  }, 210);
+}
+
+function pick(btn, persona) {
+  if (locked) return;
+  locked = true;
+  vibrate();
+  answers[current] = persona;
+  btn.classList.add("picked");
+  $("progress-fill").style.width = `${((current + 1) / TOTAL) * 100}%`;
+
+  const advance = () => {
+    current++;
+    if (current < TOTAL) {
+      slideTo(renderQuestion, false);
+    } else {
+      renderResult();
+    }
+  };
+  setTimeout(advance, 300);
+}
+
+$("btn-back").addEventListener("click", () => {
+  if (locked || current === 0) return;
+  current--;
+  slideTo(renderQuestion, true);
+});
+
+/* ---------- 结果 ---------- */
+function countScores() {
+  const s = { snap: 0, slow: 0, flash: 0, nerd: 0 };
+  answers.forEach(a => { if (a) s[a]++; });
+  return s;
+}
+
+function winner(scores) {
+  const order = ["snap", "slow", "flash", "nerd"];
+  let best = order[0], max = -1;
+  order.forEach(k => {
+    if (scores[k] > max) { max = scores[k]; best = k; }
+  });
+  return best;
+}
+
+function confetti(container) {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const colors = ["#F4B8C4", "#BCDCC0", "#F5E6A8", "#D3C6F0", "#AEC9D6"];
+  for (let i = 0; i < 26; i++) {
+    const d = document.createElement("span");
+    d.className = "confetti-dot";
+    const size = 6 + Math.random() * 8;
+    d.style.width = size + "px";
+    d.style.height = size + "px";
+    d.style.left = Math.random() * 100 + "%";
+    d.style.background = colors[i % colors.length];
+    d.style.animationDuration = (1.4 + Math.random() * 1.2) + "s";
+    d.style.animationDelay = (Math.random() * 0.6) + "s";
+    container.appendChild(d);
+    d.addEventListener("animationend", () => d.remove());
+  }
+}
+
+function renderResult() {
+  const scores = countScores();
+  const key = winner(scores);
+  // 极端条件：10 题全部选择同一位置的选项
+  const pickedIdx = answers.map((a, qi) => QUESTIONS[qi].options.findIndex(o => o.p === a));
+  lastHidden = pickedIdx.length === TOTAL && pickedIdx.every(i => i === pickedIdx[0]);
+  const p = lastHidden ? HIDDEN : PERSONAS[key];
+
+  $("result-img").src = p.img;
+  $("result-tag").textContent = lastHidden ? "隐藏款 · 薰衣草紫" : { snap: "樱花粉", slow: "薄荷绿", flash: "奶油黄", nerd: "婴儿蓝" }[key];
+  $("result-tag").style.background = p.color;
+  $("result-title").textContent = (lastHidden ? "✦ " : "") + p.name;
+  $("result-en").textContent = p.en;
+  $("result-desc").textContent = p.desc;
+  $("result-tip").textContent = p.tip;
+
+  const list = $("dist-list");
+  list.innerHTML = "";
+  const colorMap = { snap: "#F4B8C4", slow: "#BCDCC0", flash: "#F5E6A8", nerd: "#AEC9D6" };
+  Object.keys(PERSONAS).forEach(k => {
+    const v = scores[k];
+    const row = document.createElement("div");
+    row.className = "dist-row";
+    row.innerHTML = `
+      <span class="dist-name">${PERSONAS[k].name}</span>
+      <div class="dist-track"><div class="dist-fill" data-w="${(v / TOTAL) * 100}" style="background:${colorMap[k]}"></div></div>
+      <span class="dist-count">${v}</span>`;
+    list.appendChild(row);
+  });
+
+  show("result");
+  confetti($("result-card"));
+  setTimeout(() => {
+    document.querySelectorAll(".dist-fill").forEach(el => {
+      el.style.width = el.dataset.w + "%";
+    });
+  }, 250);
+}
+
+/* ---------- 入口 ---------- */
+function start() {
+  current = 0;
+  answers = new Array(TOTAL).fill(null);
+  show("quiz");
+  renderQuestion();
+  quizEl.classList.add("q-enter");
+  setTimeout(() => quizEl.classList.remove("q-enter"), 360);
+}
+
+$("btn-start").addEventListener("click", start);
+
+$("btn-restart").addEventListener("click", () => {
+  current = 0;
+  answers = new Array(TOTAL).fill(null);
+  show("start");
+});
+
+$("btn-share").addEventListener("click", async () => {
+  const scores = countScores();
+  const key = winner(scores);
+  const p = lastHidden ? HIDDEN : PERSONAS[key];
+  const link = "https://zhuzheming001.github.io/demo_1024";
+  const text = (lastHidden
+    ? `我在「广州艺术博物院·看展人格测试」唤醒了隐藏人格：${p.name}！只有最极端的答题方式才能触发。`
+    : `我在「广州艺术博物院·看展人格测试」中测出：${p.name}（${p.en}）。你是哪种看展人？`) + `\n测试入口：${link}`;
+  const btn = $("btn-share");
+  try {
+    await navigator.clipboard.writeText(text);
+    btn.textContent = "已复制，去分享吧";
+  } catch (e) {
+    btn.textContent = text;
+  }
+  setTimeout(() => { btn.textContent = "复制结果，分享给同去看展的 TA"; }, 2000);
+});
+
+/* ---------- 键盘操作（桌面端） ---------- */
+document.addEventListener("keydown", e => {
+  if (screens.start.classList.contains("active") && e.key === "Enter") { start(); return; }
+  if (screens.result.classList.contains("active") && (e.key === "r" || e.key === "R")) { $("btn-restart").click(); return; }
+  if (!screens.quiz.classList.contains("active") || locked) return;
+
+  if (e.key === "Backspace") {
+    e.preventDefault();
+    if (current > 0) { current--; slideTo(renderQuestion, true); }
+    return;
+  }
+  const map = { "1": 0, "2": 1, "3": 2, "4": 3, a: 0, b: 1, c: 2, d: 3, A: 0, B: 1, C: 2, D: 3 };
+  const idx = map[e.key];
+  if (idx !== undefined) {
+    const btns = document.querySelectorAll("#q-options .opt");
+    if (btns[idx]) btns[idx].click();
+  }
+});
+</script>
+</body>
+</html>
